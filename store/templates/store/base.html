@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>{% block title %}Ecom | Premium Online Store{% endblock title %}</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+
+    {% block extra_head %}{% endblock extra_head %}
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light-gradient">
+
+    <!-- Modern Glassmorphism Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top custom-navbar">
+        <div class="container">
+            <!-- Brand Logo -->
+            <a class="navbar-brand fw-bold fs-3 text-gradient d-flex align-items-center gap-2" href="{% url 'store' %}">
+                <i class="fa-solid fa-bag-shopping text-primary"></i> Ecom
+            </a>
+
+            <!-- Mobile Toggler Button -->
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navbar Links & Search -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom active fw-medium" href="{% url 'store' %}">
+                            <i class="fa-solid fa-store me-1"></i> Store
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- User Account & Cart Controls -->
+                <div class="d-flex align-items-center gap-3">
+                    {% if request.user.is_authenticated %}
+                        <div class="dropdown">
+                            <button class="btn btn-white shadow-sm border rounded-pill px-3 py-1 d-flex align-items-center gap-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-circle-user fs-5 text-primary"></i>
+                                <span class="fw-medium fs-6">{{ request.user.username|title }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-2 custom-dropdown">
+                                <li><a class="dropdown-item py-2" href="{% url 'cart' %}"><i class="fa-solid fa-box-archive me-2 text-muted"></i> My Cart</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item py-2 text-danger fw-medium" href="/logout"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a></li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="/auth/login" class="btn btn-outline-primary rounded-pill px-4 fw-medium">
+                            <i class="fa-solid fa-right-to-bracket me-1"></i> Login
+                        </a>
+                    {% endif %}
+
+                    <!-- Cart Icon with Dynamic Badge -->
+                    <a href="{% url 'cart' %}" class="cart-icon-wrapper position-relative text-dark text-decoration-none p-2">
+                        <i class="fa-solid fa-cart-shopping fs-4 text-secondary"></i>
+                        <span id="cart-total" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm">
+                            {{ cartItems|default:"0" }}
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Django Flash Messages Container -->
+    <div class="container mt-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Main Content Body -->
+    <main class="flex-grow-1 py-4">
+        <div class="container">
+            {% block content %}
+            {% endblock content %}
+        </div>
+    </main>
+
+    <!-- Modern Footer -->
+    <footer class="footer mt-auto py-4 bg-white border-top">
+        <div class="container">
+            <div class="row align-items-center gy-3">
+                <div class="col-md-6 text-center text-md-start">
+                    <span class="fw-bold fs-5 text-dark">Ecom</span>
+                    <span class="text-muted ms-2">&copy; 2026 All rights reserved.</span>
+                </div>
+                <div class="col-md-6 text-center text-md-end text-muted fs-4">
+                    <i class="fa-brands fa-cc-visa mx-1"></i>
+                    <i class="fa-brands fa-cc-mastercard mx-1"></i>
+                    <i class="fa-brands fa-cc-paypal mx-1"></i>
+                    <i class="fa-brands fa-apple-pay mx-1"></i>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- CSRF Token Helper for Javascript AJAX calls -->
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+    </script>
+
+    {% block extra_js %}{% endblock extra_js %}
+</body>
+</html>

@@ -1,0 +1,121 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}Checkout | Ecom{% endblock title %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Form & Payment Container -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-4 p-4" id="form-wrapper">
+            <form id="form">
+                
+                <!-- Customer Details -->
+                <div id="user-info">
+                    <h5 class="fw-bold mb-3 text-dark"><i class="fa-regular fa-id-card me-2 text-primary"></i>Customer Information</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium text-muted">Full Name</label>
+                            <input required class="form-control rounded-3 py-2" type="text" name="name" placeholder="John Doe">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium text-muted">Email Address</label>
+                            <input required class="form-control rounded-3 py-2" type="email" name="email" placeholder="john@example.com">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Details -->
+                <div id="shipping-info" class="mt-4 pt-3 border-top">
+                    <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-truck-fast me-2 text-primary"></i>Shipping Address</h5>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-medium text-muted">Street Address</label>
+                            <input class="form-control rounded-3 py-2" type="text" name="address" placeholder="1234 Main St">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium text-muted">City</label>
+                            <input class="form-control rounded-3 py-2" type="text" name="city" placeholder="New York">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium text-muted">State / Province</label>
+                            <input class="form-control rounded-3 py-2" type="text" name="state" placeholder="NY">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium text-muted">Postal / Zip Code</label>
+                            <input class="form-control rounded-3 py-2" type="text" name="zipcode" placeholder="10001">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium text-muted">Country</label>
+                            <input class="form-control rounded-3 py-2" type="text" name="country" placeholder="United States">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-2">
+                    <button id="form-button" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm" type="submit">
+                        Continue to Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Payment Option Box (Initially Hidden / Controlled via JS) -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mt-4 hidden" id="payment-info">
+            <h5 class="fw-bold mb-3 text-dark"><i class="fa-regular fa-credit-card me-2 text-primary"></i>Payment Method</h5>
+            <p class="text-muted small mb-3">Choose a payment option below to complete your order safely.</p>
+            
+            <div id="paypal-button-container">
+                <!-- PayPal Buttons render here via JS -->
+                <button class="btn btn-warning w-100 rounded-pill fw-bold py-2"><i class="fa-brands fa-paypal me-2"></i>Pay with PayPal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Summary Column -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 90px;">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <a class="btn btn-sm btn-outline-secondary rounded-pill px-3" href="{% url 'cart' %}">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Edit Cart
+                </a>
+                <h5 class="fw-bold mb-0 text-dark">Order Summary</h5>
+            </div>
+
+            <!-- Itemized List -->
+            <div class="checkout-items-list mb-3 pe-1" style="max-height: 320px; overflow-y: auto;">
+                {% for item in items %}
+                <div class="d-flex align-items-center gap-3 py-2 border-bottom">
+                    <div class="bg-light rounded-3 p-1 flex-shrink-0" style="width: 50px; height: 50px;">
+                        <img class="w-100 h-100 object-fit-contain rounded" src="{{ item.product.imageurl }}" alt="{{ item.product.name }}">
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <h6 class="fw-semibold text-dark text-truncate mb-0">{{ item.product.name }}</h6>
+                        <small class="text-muted">${{ item.product.price }} x {{ item.quantity }}</small>
+                    </div>
+                    <div class="text-end">
+                        <span class="fw-bold text-dark">${{ item.get_total }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted">
+                    <p class="mb-0">No items in your order summary.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Price Breakdown -->
+            <div class="pt-2 border-top">
+                <div class="d-flex justify-content-between mb-2 text-muted">
+                    <span>Total Items</span>
+                    <span class="fw-medium text-dark">{{ order.get_cart_items|default:"0" }}</span>
+                </div>
+                <div class="d-flex justify-content-between fs-5 fw-bold text-dark border-top pt-2 mt-2">
+                    <span>Total Amount</span>
+                    <span class="text-primary">${{ order.get_cart_total|default:"0.00" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
