@@ -46,8 +46,9 @@
                 <!-- Action Form -->
                 <form method="POST" action="{% url 'updatecart' %}" class="mt-auto">
                     {% csrf_token %}
-                    <!-- Clean hidden input passing Product ID -->
+                    <!-- Clean hidden inputs passing Product ID and action -->
                     <input type="hidden" name="product_id" value="{{ prd.id }}">
+                    <input type="hidden" name="action" value="add">
 
                     <div class="d-flex align-items-center gap-2 pt-3 border-top">
                         <!-- Add to Cart Button -->
@@ -56,8 +57,8 @@
                             <span>Add to Cart</span>
                         </button>
 
-                        <!-- View Button -->
-                        <a href="#" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;" title="View Details">
+                        <!-- Eye Icon Button: Navigates to Product Detail Page -->
+                        <a href="{% url 'product_detail' prd.id %}" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;" title="View Product Details">
                             <i class="fa-solid fa-eye"></i>
                         </a>
                     </div>

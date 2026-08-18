@@ -1,93 +1,111 @@
-# from django.http import HttpResponse
-# from django.shortcuts import render, redirect
-# from django.contrib.auth import login, logout
-# from .models import Product
-# # from .forms import UserRegisterForm, CustomerForm
-
-# # Create your views here.
-
-# def home(request):
-#     prds = Product.objects.filter(isactive=True).order_by("price")
-#     data = {"prds": prds}
-#     return render(request, "store/home.html", data)
-
-# def cart(request):
-#     data = {}
-#     return render(request, "store/cart.html", data)
-
-# def checkout(request):
-#     data = {}
-#     return render(request, "store/checkout.html", data)
-
-
-
-# def updatecart(request):
-#     if request.user.is_authenticated == True:
-#         return HttpResponse("add to cart")
-#     else:
-#         return redirect("/auth/login")
-
-
-# def logout1(request):
-#     logout(request)
-#     prds = Product.objects.filter(isactive=True).order_by("price")
-#     data = {"prds": prds}
-#     return render(request, "store/home.html", data)
-
-
-# def register(request):
-#     if request.method == "POST":
-#         usr_frm = UserRegisterForm(request.POST)
-#         cst_frm = CustomerForm(request.POST)
-#         if usr_frm.is_valid() and cst_frm.is_valid():
-#             user = usr_frm.save()
-#             cst = cst_frm.save(commit=False)
-#             cst.user = user
-#             cst.save()
-#             login(request, user)
-#             return redirect("store")
-#         else:
-#             return redirect("store")
-#     else:
-#         usr_frm = UserRegisterForm()
-#         cst_frm = CustomerForm()
-#         data = {"usr_frm": usr_frm, "cst_frm": cst_frm}
-#         return render(request, "store/register.html", data)
-
 
 # Create your views here.
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Product, Customer, Order, OrderItem
 
-from django.shortcuts import render,redirect,get_object_or_404
-from .models import Product
-from django.http import JsonResponse
-from django.http import HttpResponse
-
-def home(request) :
-    prd = Product.objects.filter(isactive=True).order_by("price")
-    data = {"prds" : prd}
-    return render(request,"store/home.html",data)
-
-def cart(request) :
-    data = {}
-    return render(request,"store/cart.html",data)
-
-def checkout(request) :
-    data = {}
-    return render(request,"checkout/cart.html",data)
-
-# def updatecart(request):
-#     return JsonResponse({'message': 'Cart updated'}, safe=False)
-
-def updatecart(request):
-    if request.user.is_authenticated == True:
-        return HttpResponse("add to cart")
+# 1. Store Home View
+def home(request):
+    prds = Product.objects.filter(isactive=True).order_by("price")
+    
+    # Pass order to context so base.html navbar cart badge works
+    if request.user.is_authenticated:
+        customer, created = Customer.objects.get_or_create(
+            user=request.user, 
+            defaults={'name': request.user.username, 'email': request.user.email}
+        )
+        order, created = Order.objects.get_or_create(customer=customer, complete=False)
     else:
-        return redirect("/auth/login")
-    
-    
-def product_detail(request,pk) :
+        order = {'get_cart_total': 0, 'get_cart_items': 0}
+
+    data = {"prds": prds, "order": order}
+    return render(request, "store/home.html", data)
+
+# 2. Cart View
+def cart(request):
+    if request.user.is_authenticated:
+        customer, created = Customer.objects.get_or_create(
+            user=request.user, 
+            defaults={'name': request.user.username, 'email': request.user.email}
+        )
+        order, created = Order.objects.get_or_create(customer=customer, complete=False)
+        items = order.orderitem_set.all()
+    else:
+        items = []
+        order = {'get_cart_total': 0, 'get_cart_items': 0}
+
+    context = {'items': items, 'order': order}
+    return render(request, "store/cart.html", context)
+
+# 3. Checkout View
+def checkout(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    customer, created = Customer.objects.get_or_create(
+        user=request.user, 
+        defaults={'name': request.user.username, 'email': request.user.email}
+    )
+    order, created = Order.objects.get_or_create(customer=customer, complete=False)
+    items = order.orderitem_set.all()
+
+    context = {'items': items, 'order': order}
+    return render(request, "store/checkout.html", context)
+
+# 4. Backend Update Cart View (handles pure HTML POST form submissions)
+@login_required(login_url='login')
+def updatecart(request):
+    if request.method == 'POST':
+        product_id = request.POST.get('product_id')
+        action = request.POST.get('action', 'add')
+        
+        customer, created = Customer.objects.get_or_create(
+            user=request.user, 
+            defaults={'name': request.user.username, 'email': request.user.email}
+        )
+        order, created = Order.objects.get_or_create(customer=customer, complete=False)
+        product = get_object_or_404(Product, id=product_id)
+        
+        # Check 'created' boolean from get_or_create
+        order_item, item_created = OrderItem.objects.get_or_create(
+            order=order, 
+            product=product,
+            defaults={'quantity': 1} # Sets default to 1 on creation
+        )
+        
+        # Only increment if the item ALREADY existed before this click
+        if not item_created:
+            if action == 'add':
+                order_item.quantity += 1
+            elif action == 'remove':
+                order_item.quantity -= 1
+        elif action == 'remove':
+            order_item.quantity -= 1
+
+        order_item.save()
+        
+        if order_item.quantity <= 0 or action == 'delete':
+            order_item.delete()
+
+        return redirect('cart')
+
+    return redirect('home')
+
+# 5. Product Detail View
+def product_detail(request, pk):
     product = get_object_or_404(Product, id=pk)
-    return render(request,"store/product_detail.html",{"product":product})
+    
+    if request.user.is_authenticated:
+        customer, created = Customer.objects.get_or_create(
+            user=request.user, 
+            defaults={'name': request.user.username, 'email': request.user.email}
+        )
+        order, created = Order.objects.get_or_create(customer=customer, complete=False)
+    else:
+        order = {'get_cart_total': 0, 'get_cart_items': 0}
+
+    context = {"product": product, "order": order}
+    return render(request, "store/product_detail.html", context)
     
     
 

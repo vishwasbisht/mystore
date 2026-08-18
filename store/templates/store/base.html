@@ -25,10 +25,10 @@
 <body class="d-flex flex-column min-vh-100 bg-light-gradient">
 
     <!-- Modern Glassmorphism Navbar -->
-    <nav class="navbar navbar-expand-lg sticky-top custom-navbar">
+    <nav class="navbar navbar-expand-lg sticky-top custom-navbar bg-white shadow-sm">
         <div class="container">
             <!-- Brand Logo -->
-            <a class="navbar-brand fw-bold fs-3 text-gradient d-flex align-items-center gap-2" href="{% url 'store' %}">
+            <a class="navbar-brand fw-bold fs-3 text-gradient d-flex align-items-center gap-2" href="{% url 'home' %}">
                 <i class="fa-solid fa-bag-shopping text-primary"></i> Ecom
             </a>
 
@@ -41,7 +41,7 @@
             <div class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
                     <li class="nav-item">
-                        <a class="nav-link nav-link-custom active fw-medium" href="{% url 'store' %}">
+                        <a class="nav-link nav-link-custom active fw-medium" href="{% url 'home' %}">
                             <i class="fa-solid fa-store me-1"></i> Store
                         </a>
                     </li>
@@ -71,7 +71,7 @@
                     <a href="{% url 'cart' %}" class="cart-icon-wrapper position-relative text-dark text-decoration-none p-2">
                         <i class="fa-solid fa-cart-shopping fs-4 text-secondary"></i>
                         <span id="cart-total" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm">
-                            {{ cartItems|default:"0" }}
+                            {{ order.get_cart_items|default:"0" }}
                         </span>
                     </a>
                 </div>
@@ -119,25 +119,6 @@
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- CSRF Token Helper for Javascript AJAX calls -->
-    <script>
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-        const csrftoken = getCookie('csrftoken');
-    </script>
 
     {% block extra_js %}{% endblock extra_js %}
 </body>
